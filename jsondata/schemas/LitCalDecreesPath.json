@@ -1,0 +1,15 @@
+{
+    "$schema": "https://json-schema.org/draft-07/schema#",
+    "title": "LitCalDecreesPath",
+    "description": "Decrees issued by the Dicastery for Divine Worship and the Discipline of the Sacraments or Apostolic Letters and similar dispositions from the Supreme Pontiff that determine new data in the calculation of the Liturgical Calendar",
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+        "litcal_decrees": {
+            "$ref": "./LitCalDecreesSource.json"
+        }
+    },
+    "required": [
+        "litcal_decrees"
+    ]
+}

@@ -1,0 +1,240 @@
+{
+    "$schema": "https://json-schema.org/draft-07/schema#",
+    "title": "LitCalDecreesSource",
+    "description": "Decrees issued by the Dicastery for Divine Worship and the Discipline of the Sacraments or Apostolic Letters and similar dispositions from the Supreme Pontiff that determine new data in the calculation of the Liturgical Calendar",
+    "type": "array",
+    "items": {
+        "$ref": "#/definitions/LitCalDecree"
+    },
+    "definitions": {
+        "LitCalDecree": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "decree_id": {
+                    "type": "string",
+                    "pattern": "^[A-Z][A-Za-z]+_(Upgrade|Create|NameChange|Doctor)$"
+                },
+                "decree_date": {
+                    "type": "string",
+                    "format": "date"
+                },
+                "decree_protocol": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "liturgical_event": {
+                    "$ref": "#/definitions/LiturgicalEvent"
+                },
+                "metadata": {
+                    "$ref": "#/definitions/Metadata"
+                },
+                "api_path": {
+                    "type": "string",
+                    "pattern": "^https?:\\\/\\\/(?:litcal\\.johnromanodorazio\\.com\\\/api\\\/(?:dev|v[4-9]|v[1-9]\\d+)|localhost(?:\\:\\d{4}))\\\/decrees\\\/[A-Z][A-Za-z]+_(Upgrade|Create|NameChange|Doctor)$"
+                }
+            },
+            "required": [
+                "decree_id",
+                "decree_date",
+                "decree_protocol",
+                "description",
+                "liturgical_event",
+                "metadata"
+            ]
+        },
+        "LiturgicalEvent": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "event_key": {
+                    "$ref": "./CommonDef.json#/definitions/EventKey"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "grade": {
+                    "$ref": "./CommonDef.json#/definitions/LitGrade"
+                },
+                "common": {
+                    "$ref": "./CommonDef.json#/definitions/LitCommon"
+                },
+                "calendar": {
+                    "$ref": "./CommonDef.json#/definitions/Calendar"
+                },
+                "color": {
+                    "$ref": "./CommonDef.json#/definitions/LitColor"
+                },
+                "type": {
+                    "$ref": "./CommonDef.json#/definitions/LitEventType"
+                },
+                "readings": {
+                    "$ref": "./CommonDef.json#/definitions/Readings"
+                },
+                "month": {
+                    "$ref": "./CommonDef.json#/definitions/Month"
+                },
+                "day": {
+                    "$ref": "./CommonDef.json#/definitions/Day"
+                },
+                "strtotime": {
+                    "oneOf": [
+                        {
+                            "type": "string",
+                            "description": "supports PHP strtotime string format"
+                        },
+                        {
+                            "$ref": "./CommonDef.json#/definitions/RelativeDateObject"
+                        }
+                    ]
+                }
+            },
+            "required": [
+                "event_key",
+                "calendar"
+            ],
+            "title": "LiturgicalEvent"
+        },
+        "Metadata": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "action": {
+                    "$ref": "#/definitions/MemorialFromDecreesAction"
+                },
+                "property": {
+                    "type": "string",
+                    "enum": [
+                        "name",
+                        "grade"
+                    ]
+                },
+                "url": {
+                    "$ref": "#/definitions/DecreeURL"
+                },
+                "url_lang_map": {
+                    "$ref": "#/definitions/DecreeLangs"
+                },
+                "urls_langs": {
+                    "$ref": "#/definitions/DecreeURLS"
+                },
+                "since_year": {
+                    "type": "integer"
+                }
+            },
+            "required": [
+                "action",
+                "url"
+            ],
+            "title": "Metadata"
+        },
+        "MemorialFromDecreesAction": {
+            "type": "string",
+            "enum": [
+                "createNew",
+                "setProperty",
+                "makeDoctor"
+            ],
+            "title": "MemorialFromDecreesAction"
+        },
+        "DecreeURL": {
+            "type": "string",
+            "pattern": "^https?:\\\/\\\/(www|press)\\.vatican\\.va\\\/((roman_curia\\\/congregations\\\/ccdds\\\/documents\\\/[-_%a-z0-9]+)|(content\\\/salastampa\\\/it\\\/bollettino\\\/pubblico\\\/[0-9\\\/]+)|(content\\\/[-_%\\\/a-z0-9]+))\\.(html|pdf)(#[%a-zD]+)?$",
+            "title": "DecreeURL"
+        },
+        "DecreeURLS": {
+            "type": "object",
+            "additionalProperties": false,
+            "patternProperties": {
+                "(de|en|es|fr|it|la|pl|pt)": {
+                    "type": "string",
+                    "pattern": "^https?:\\\/\\\/(www|press)\\.vatican\\.va\\\/((roman_curia\\\/congregations\\\/ccdds\\\/documents\\\/[-_%a-z0-9]+)|(content\\\/salastampa\\\/it\\\/bollettino\\\/pubblico\\\/[0-9\\\/]+)|(content\\\/[-_%\\\/a-z0-9]+))\\.(html|pdf)(#[%a-zD]+)?$"
+                }
+            }
+        },
+        "DecreeLangs": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "de": {
+                    "type": "string",
+                    "description": "German",
+                    "enum": [
+                        "de",
+                        "ge",
+                        "tedeD",
+                        "tedesca"
+                    ]
+                },
+                "en": {
+                    "type": "string",
+                    "description": "English",
+                    "enum": [
+                        "en",
+                        "ingD",
+                        "inglese"
+                    ]
+                },
+                "es": {
+                    "type": "string",
+                    "description": "Spanish",
+                    "enum": [
+                        "es",
+                        "sp",
+                        "spagnD",
+                        "spagnola"
+                    ]
+                },
+                "fr": {
+                    "type": "string",
+                    "description": "French",
+                    "enum": [
+                        "fr",
+                        "francD",
+                        "francese"
+                    ]
+                },
+                "it": {
+                    "type": "string",
+                    "description": "Italian",
+                    "enum": [
+                        "it",
+                        "italD",
+                        "italiana"
+                    ]
+                },
+                "la": {
+                    "type": "string",
+                    "description": "Latin",
+                    "enum": [
+                        "la",
+                        "lat",
+                        "latina"
+                    ]
+                },
+                "pl": {
+                    "type": "string",
+                    "description": "Polish",
+                    "enum": [
+                        "pl",
+                        "polacca"
+                    ]
+                },
+                "pt": {
+                    "type": "string",
+                    "description": "Portuguese",
+                    "enum": [
+                        "po",
+                        "pt",
+                        "portD",
+                        "portoghese"
+                    ]
+                }
+            },
+            "description": "mapping between two-letter ISO code for a language, and the actual language token used in Vatican Decree URLs",
+            "title": "DecreeLangs"
+        }
+    }
+}

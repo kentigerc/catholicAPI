@@ -1,0 +1,133 @@
+name: Linting, static analysis, and POTs update
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the given branch
+  push:
+    branches: [ development ]
+    paths: [ '**/*.php' ]
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+env:
+  PHP_VERSION: '8.4'
+
+  # A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+
+      # Restore vendor folder from cache if available
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: composer-${{ hashFiles('composer.lock') }}
+          restore-keys: |
+            composer-
+
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      # Share vendor folder with other jobs in this run
+      - name: Upload vendor folder
+        uses: actions/upload-artifact@v4
+        with:
+          name: vendor-folder
+          path: vendor
+          retention-days: 1
+
+  codesniffer:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+
+      - name: Download vendor folder from build job
+        uses: actions/download-artifact@v4
+        with:
+          name: vendor-folder
+          path: vendor
+
+      - name: Fix permissions on vendor binaries
+        run: test -d vendor/bin && chmod +x vendor/bin/* || true
+
+      - name: PHP Code Sniffer
+        run: composer lint
+
+  static_analysis:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+
+      - name: Download vendor folder from build job
+        uses: actions/download-artifact@v4
+        with:
+          name: vendor-folder
+          path: vendor
+
+      - name: Fix permissions on vendor binaries
+        run: test -d vendor/bin && chmod +x vendor/bin/* || true
+
+      - name: PHPStan
+        run: composer analyse
+
+  gettext_update:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+    needs: [codesniffer, static_analysis]
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Check-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v4
+
+      - name: Update source file translation strings
+        id: update_pot
+        run: |
+          sudo apt-get update -y && sudo apt-get install -y gettext
+          xgettext --from-code=UTF-8 --add-comments='translators:' \
+                   --keyword="pgettext:1c,2" \
+                   -o i18n/litcal.pot $(git ls-files '*.php')
+          echo "POT_LINES_CHANGED=$(git diff -U0 | grep '^[+|-][^+|-]' | grep -Ev '^[+-]"POT-Creation-Date' | wc -l)" >> $GITHUB_OUTPUT
+
+      # push the output folder to your repo
+      - name: Push changes
+        if: ${{ steps.update_pot.outputs.POT_LINES_CHANGED > 0 }}
+        uses: actions-x/commit@v6
+        with:
+          # The committer's email address
+          email: 41898282+github-actions[bot]@users.noreply.github.com
+          # The committer's name
+          name: github-actions
+          # The commit message
+          message: regenerated i18n/litcal.pot from source files
+          # The branch to push the changes back to, defaults to the current branch
+          branch: ${{ github.ref }}
+          # The files to add separated by space, defaults to every file
+          files: i18n/litcal.pot
+          # The repository to push the code to, defaults to origin (e.g. this repository)
+          repository: origin
+          # The token used to push the code, not needed if you push to the same repository
+          #token: # default is ${{ github.token }}
+          # Whether to perform force push
+          force: 0
+          # The working directory that will be used for git commands
+          #directory: # default is .

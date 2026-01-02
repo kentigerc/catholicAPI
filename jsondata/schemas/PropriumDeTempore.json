@@ -1,0 +1,31 @@
+{
+    "$schema": "https://json-schema.org/draft-07/schema#",
+    "title": "PropriumDeTempore",
+    "type": "array",
+    "items": {
+        "$ref": "#/definitions/LitEvent"
+    },
+    "definitions": {
+        "LitEvent": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "event_key": {
+                    "$ref": "./CommonDef.json#/definitions/EventKey"
+                },
+                "grade": {
+                    "$ref": "./CommonDef.json#/definitions/LitGrade"
+                },
+                "type": {
+                    "$ref": "./CommonDef.json#/definitions/LitEventType"
+                },
+                "color": {
+                    "$ref": "./CommonDef.json#/definitions/LitColor"
+                }
+            },
+            "required": [
+                "event_key"
+            ]
+        }
+    }
+}
